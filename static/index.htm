@@ -1,0 +1,130 @@
+<html>
+
+<head>
+    <!---Imports d3 and topojson --->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <style>
+        svg#calisvg {
+            fill: None;
+        }
+
+        svg#nysvg {
+            fill: None;
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="calisvg" height="600" width="600"></svg>
+    <svg id="nysvg" height="600" width="600"></svg>
+    <script>
+        const calisvg = d3.select("svg#calisvg");
+        const nysvg = d3.select("svg#nysvg");
+
+        // constants shared across all maps
+        width = calisvg.attr("width");
+        height = calisvg.attr("height");
+        const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+        const mapWidth = width - margin.left - margin.right;
+        const mapHeight = height - margin.top - margin.bottom;
+
+        const requestData = async function () {
+            // start california map
+            const calijson = await d3.json("./cali.topojson")
+            var caliFeat = topojson.feature(calijson, calijson.objects.cali)
+            var caliMesh = topojson.mesh(calijson, calijson.objects.cali)
+
+            var caliProjection = d3.geoMercator().fitSize([mapWidth, mapHeight], caliFeat);
+            var calipath = d3.geoPath().projection(caliProjection);
+
+            // console.log(caliFeat)
+            let calimap = calisvg.append("g").attr("id", "californiaMap");
+
+            let caliPaths = calimap.selectAll("path.neighbors").data(caliFeat.features)
+                .join("path")
+                .attr("class", "neighbors")
+                .attr("d", calipath)
+                .style("fill", "lightgray");
+
+            let caliPath = calimap.append("path").datum(caliMesh)
+                .attr("class", "outline")
+                .attr("d", calipath)
+                .style("stroke", "white")
+                .attr("class", "neighbor-outline")
+                .style("stroke-width", 1);
+            // end california map
+
+            // start new york map
+            const nyjson = await d3.json("./newyork.topojson")
+            var nyFeat = topojson.feature(nyjson, nyjson.objects.newyork)
+            var nyMesh = topojson.mesh(nyjson, nyjson.objects.newyork)
+
+            var nyProjection = d3.geoMercator().fitSize([mapWidth, mapHeight], nyFeat);
+            var nypath = d3.geoPath().projection(nyProjection);
+
+            let nymap = nysvg.append("g").attr("id", "newyorkMap");
+
+            let nyPaths = nymap.selectAll("path.neighbors").data(nyFeat.features)
+                .join("path")
+                .attr("class", "neighbors")
+                .attr("d", nypath)
+                .style("fill", "lightgray");
+
+            let nyPath = nymap.append("path").datum(nyMesh)
+                .attr("class", "outline")
+                .attr("d", nypath)
+                .style("stroke", "white")
+                .attr("class", "neighbor-outline")
+                .style("stroke-width", 1);
+            // end new york map
+
+            d3.csv('./startup_filtered.csv', d3.autoType)
+                .then((data) => {
+                    // data that is in california
+                    var caliPoints = []
+                    // data that is in new york
+                    var nyPoints = []
+
+                    data.forEach(function (point) {
+                        if (point.state_code == "CA") {
+                            caliPoints.push(point);
+                        }
+                        else if (point.state_code == "NY") {
+                            nyPoints.push(point);
+                        }
+                    });
+                    // console.log(caliPoints)
+
+                    var caliCircles = calimap.selectAll("circle").data(caliPoints)
+                        .join("circle")
+                        .attr("cx", d => caliProjection([d['longitude'], d['latitude']])[0])
+                        .attr("cy", d => caliProjection([d['longitude'], d['latitude']])[1])
+                        .attr("r", 0.5)
+                        .attr("opacity", 0.4)
+                        .attr("fill", "blue")
+                    // .attr("title", d => d.name) // Add tooltip text
+                    // .on("mouseover", overfn)
+                    // .on("mouseout", outfn);
+
+                    var nyCircles = nymap.selectAll("circle").data(nyPoints)
+                        .join("circle")
+                        .attr("cx", d => nyProjection([d['longitude'], d['latitude']])[0])
+                        .attr("cy", d => nyProjection([d['longitude'], d['latitude']])[1])
+                        .attr("r", 1)
+                        .attr("opacity", 1)
+                        .attr("fill", "blue")
+
+
+
+                })
+
+
+
+
+
+        }
+        requestData();
+
+    </script>
+</body>
