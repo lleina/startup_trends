@@ -9,6 +9,10 @@
             fill: None;
         }
 
+        svg#caliMinisvg {
+            fill: None;
+        }
+
         svg#nysvg {
             fill: None;
         }
@@ -16,11 +20,15 @@
 </head>
 
 <body>
-    <svg id="calisvg" height="600" width="600"></svg>
-    <svg id="nysvg" height="600" width="600"></svg>
+    <svg id="calisvg" height="350" width="350"></svg>
+    <svg id="caliMinisvg" height="350" width="350"></svg>
+    <svg id="nysvg" height="350" width="350"></svg>
+    <svg id="nyMinisvg" height="350" width="350"></svg>
     <script>
         const calisvg = d3.select("svg#calisvg");
         const nysvg = d3.select("svg#nysvg");
+
+        const caliminisvg = d3.select("svg#caliMinisvg")
 
         // constants shared across all maps
         width = calisvg.attr("width");
@@ -28,6 +36,11 @@
         const margin = { top: 10, right: 10, bottom: 10, left: 10 };
         const mapWidth = width - margin.left - margin.right;
         const mapHeight = height - margin.top - margin.bottom;
+
+        miniWidth = caliminisvg.attr("width");
+        miniHeight = caliminisvg.attr("height");
+        const miniMapWidth = miniWidth - margin.left - margin.right;
+        const miniMapHeight = miniHeight - margin.left - margin.right;
 
         const requestData = async function () {
             // start california map
@@ -53,7 +66,28 @@
                 .style("stroke", "white")
                 .attr("class", "neighbor-outline")
                 .style("stroke-width", 1);
+
             // end california map
+
+
+            // start cali mini map
+            let caliMiniMap = caliminisvg.append("g").attr("id", "caliMiniMap");
+
+            let caliMiniPaths = caliMiniMap.selectAll("path.neighbors").data(caliFeat.features)
+                .join("path")
+                .attr("class", "neighbors")
+                .attr("d", calipath)
+                .style("fill", "lightgray");
+
+            let caliMiniPath = caliMiniMap.append("path").datum(caliMesh)
+                .attr("class", "outline")
+                .attr("d", calipath)
+                .style("stroke", "white")
+                .attr("class", "neighbor-outline")
+                .style("stroke-width", 1);
+
+
+            // end cali mini map
 
             // start new york map
             const nyjson = await d3.json("./newyork.topojson")
@@ -103,9 +137,36 @@
                         .attr("r", 0.5)
                         .attr("opacity", 0.4)
                         .attr("fill", "blue")
+
+                    var caliMiniCircles = caliMiniMap.selectAll("circle").data(caliPoints)
+                        .join("circle")
+                        .attr("cx", d => caliProjection([d['longitude'], d['latitude']])[0])
+                        .attr("cy", d => caliProjection([d['longitude'], d['latitude']])[1])
+                        .attr("r", 0.3)
+                        .attr("opacity", 0.3)
+                        .attr("fill", "blue")
+
                     // .attr("title", d => d.name) // Add tooltip text
                     // .on("mouseover", overfn)
                     // .on("mouseout", outfn);
+
+                    var zoom = d3.zoom()
+                        .scaleExtent([1, 70]) // Define the minimum and maximum zoom levels
+                        .on("zoom", zoomFunc);
+                    caliminisvg.call(zoom);
+                    // caliminisvg.call(zoom.transform, d3.zoomIdentity);
+                    caliminisvg.call(zoom.transform, d3.zoomIdentity
+                        .translate(-(15 * 75), -(15 * 150))
+                        .scale(15));
+
+                    function zoomFunc({ transform }) {
+                        caliMiniMap.attr("transform", transform.toString());
+                        caliMiniMap.select(".neighbor-outline")
+                            .style("stroke-width", 3 / transform.k);
+                        caliMiniMap.select(".neighbors")
+                            .style("stroke-width", 1 / transform.k);
+                        caliMiniCircles.attr("r", 4 / transform.k);
+                    }
 
                     var nyCircles = nymap.selectAll("circle").data(nyPoints)
                         .join("circle")
