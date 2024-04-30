@@ -16,19 +16,24 @@
         svg#nysvg {
             fill: None;
         }
+
+        svg#nyMinisvg {
+            fill: None;
+        }
     </style>
 </head>
 
 <body>
     <svg id="calisvg" height="350" width="350"></svg>
-    <svg id="caliMinisvg" height="350" width="350"></svg>
+    <svg id="caliMinisvg" height="350" width="350" style="border:2px solid rgb(211, 210, 210)"></svg>
     <svg id="nysvg" height="350" width="350"></svg>
-    <svg id="nyMinisvg" height="350" width="350"></svg>
+    <svg id="nyMinisvg" height="350" width="350" style="border:2px solid rgb(211, 210, 210)"></svg>
     <script>
         const calisvg = d3.select("svg#calisvg");
         const nysvg = d3.select("svg#nysvg");
 
         const caliminisvg = d3.select("svg#caliMinisvg")
+        const nyminisvg = d3.select("svg#nyMinisvg")
 
         // constants shared across all maps
         width = calisvg.attr("width");
@@ -85,8 +90,6 @@
                 .style("stroke", "white")
                 .attr("class", "neighbor-outline")
                 .style("stroke-width", 1);
-
-
             // end cali mini map
 
             // start new york map
@@ -112,6 +115,23 @@
                 .attr("class", "neighbor-outline")
                 .style("stroke-width", 1);
             // end new york map
+
+            // start new york mini map
+            let nyMiniMap = nyminisvg.append("g").attr("id", "nyMiniMap");
+
+            let nyMiniPaths = nyMiniMap.selectAll("path.neighbors").data(nyFeat.features)
+                .join("path")
+                .attr("class", "neighbors")
+                .attr("d", nypath)
+                .style("fill", "lightgray");
+
+            let nyMiniPath = nyMiniMap.append("path").datum(nyMesh)
+                .attr("class", "outline")
+                .attr("d", nypath)
+                .style("stroke", "white")
+                .attr("class", "neighbor-outline")
+                .style("stroke-width", 1);
+            // end new york mini map
 
             d3.csv('./startup_filtered.csv', d3.autoType)
                 .then((data) => {
@@ -146,20 +166,17 @@
                         .attr("opacity", 0.3)
                         .attr("fill", "blue")
 
-                    // .attr("title", d => d.name) // Add tooltip text
-                    // .on("mouseover", overfn)
-                    // .on("mouseout", outfn);
-
-                    var zoom = d3.zoom()
+                    // cali zoom
+                    var caliZoom = d3.zoom()
                         .scaleExtent([1, 70]) // Define the minimum and maximum zoom levels
-                        .on("zoom", zoomFunc);
-                    caliminisvg.call(zoom);
+                        .on("zoom", caliZoomFunc);
+                    caliminisvg.call(caliZoom);
                     // caliminisvg.call(zoom.transform, d3.zoomIdentity);
-                    caliminisvg.call(zoom.transform, d3.zoomIdentity
+                    caliminisvg.call(caliZoom.transform, d3.zoomIdentity
                         .translate(-(15 * 75), -(15 * 150))
                         .scale(15));
 
-                    function zoomFunc({ transform }) {
+                    function caliZoomFunc({ transform }) {
                         caliMiniMap.attr("transform", transform.toString());
                         caliMiniMap.select(".neighbor-outline")
                             .style("stroke-width", 3 / transform.k);
@@ -167,6 +184,7 @@
                             .style("stroke-width", 1 / transform.k);
                         caliMiniCircles.attr("r", 4 / transform.k);
                     }
+
 
                     var nyCircles = nymap.selectAll("circle").data(nyPoints)
                         .join("circle")
@@ -176,7 +194,32 @@
                         .attr("opacity", 1)
                         .attr("fill", "blue")
 
+                    var nyMiniCircles = nyMiniMap.selectAll("circle").data(nyPoints)
+                        .join("circle")
+                        .attr("cx", d => nyProjection([d['longitude'], d['latitude']])[0])
+                        .attr("cy", d => nyProjection([d['longitude'], d['latitude']])[1])
+                        .attr("r", 0.3)
+                        .attr("opacity", 0.3)
+                        .attr("fill", "blue")
 
+                    // ny zoom
+                    var nyZoom = d3.zoom()
+                        .scaleExtent([1, 70]) // Define the minimum and maximum zoom levels
+                        .on("zoom", nyZoomFunc);
+                    nyminisvg.call(nyZoom);
+                    // caliminisvg.call(zoom.transform, d3.zoomIdentity);
+                    nyminisvg.call(nyZoom.transform, d3.zoomIdentity
+                        .translate(-(25 * 232), -(25 * 272))
+                        .scale(25));
+
+                    function nyZoomFunc({ transform }) {
+                        nyMiniMap.attr("transform", transform.toString());
+                        nyMiniMap.select(".neighbor-outline")
+                            .style("stroke-width", 3 / transform.k);
+                        nyMiniMap.select(".neighbors")
+                            .style("stroke-width", 1 / transform.k);
+                        nyMiniCircles.attr("r", 4 / transform.k);
+                    }
 
                 })
 
