@@ -25,9 +25,9 @@
 
 <body>
     <svg id="calisvg" height="350" width="350"></svg>
-    <svg id="caliMinisvg" height="350" width="350" style="border:2px solid rgb(211, 210, 210)"></svg>
+    <svg id="caliMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
     <svg id="nysvg" height="350" width="350"></svg>
-    <svg id="nyMinisvg" height="350" width="350" style="border:2px solid rgb(211, 210, 210)"></svg>
+    <svg id="nyMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
     <script>
         const calisvg = d3.select("svg#calisvg");
         const nysvg = d3.select("svg#nysvg");
@@ -166,12 +166,20 @@
                         .attr("opacity", 0.3)
                         .attr("fill", "blue")
 
+                    let caliGray = calimap.append("rect")
+                        .attr("width", miniMapWidth)
+                        .attr("height", miniMapHeight)
+                        .attr("fill", "darkgray")
+                        .attr("opacity", 0.5)
+                        .attr("pointer-events", "none")
+                        .attr("stroke", "black")
+                        .attr("stroke-width", 2);
+
                     // cali zoom
                     var caliZoom = d3.zoom()
-                        .scaleExtent([1, 70]) // Define the minimum and maximum zoom levels
+                        .scaleExtent([1, 70])
                         .on("zoom", caliZoomFunc);
                     caliminisvg.call(caliZoom);
-                    // caliminisvg.call(zoom.transform, d3.zoomIdentity);
                     caliminisvg.call(caliZoom.transform, d3.zoomIdentity
                         .translate(-(15 * 75), -(15 * 150))
                         .scale(15));
@@ -183,6 +191,15 @@
                         caliMiniMap.select(".neighbors")
                             .style("stroke-width", 1 / transform.k);
                         caliMiniCircles.attr("r", 4 / transform.k);
+
+                        const scaledWidth = miniMapWidth / transform.k;
+                        const scaledHeight = miniMapHeight / transform.k;
+                        const offsetX = -transform.x / transform.k;
+                        const offsetY = -transform.y / transform.k;
+                        caliGray.attr("x", offsetX)
+                            .attr("y", offsetY)
+                            .attr("width", scaledWidth)
+                            .attr("height", scaledHeight);
                     }
 
 
@@ -202,12 +219,20 @@
                         .attr("opacity", 0.3)
                         .attr("fill", "blue")
 
+                    let nyGray = nymap.append("rect")
+                        .attr("width", miniMapWidth)
+                        .attr("height", miniMapHeight)
+                        .attr("fill", "darkgray")
+                        .attr("opacity", 0.5)
+                        .attr("pointer-events", "none")
+                        .attr("stroke", "black")
+                        .attr("stroke-width", 2);
+
                     // ny zoom
                     var nyZoom = d3.zoom()
-                        .scaleExtent([1, 70]) // Define the minimum and maximum zoom levels
+                        .scaleExtent([1, 70])
                         .on("zoom", nyZoomFunc);
                     nyminisvg.call(nyZoom);
-                    // caliminisvg.call(zoom.transform, d3.zoomIdentity);
                     nyminisvg.call(nyZoom.transform, d3.zoomIdentity
                         .translate(-(25 * 232), -(25 * 272))
                         .scale(25));
@@ -219,6 +244,15 @@
                         nyMiniMap.select(".neighbors")
                             .style("stroke-width", 1 / transform.k);
                         nyMiniCircles.attr("r", 4 / transform.k);
+
+                        const scaledWidth = miniMapWidth / transform.k;
+                        const scaledHeight = miniMapHeight / transform.k;
+                        const offsetX = -transform.x / transform.k;
+                        const offsetY = -transform.y / transform.k;
+                        nyGray.attr("x", offsetX)
+                            .attr("y", offsetY)
+                            .attr("width", scaledWidth)
+                            .attr("height", scaledHeight);
                     }
 
                 })
