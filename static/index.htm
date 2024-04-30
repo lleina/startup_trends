@@ -29,6 +29,16 @@
         svg#nyMinisvg {
             fill: None;
         }
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+            pointer-events: none;
+            display: none;
+        }
     </style>
 </head>
 
@@ -38,6 +48,7 @@
         <svg id="calisvg" height="350" width="350"></svg>
         <svg id="caliMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
     </div>
+    <div class="tooltip"></div>
     <div>
         <svg id="nysvg" height="350" width="350"></svg>
         <svg id="nyMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
@@ -167,6 +178,14 @@
                     });
                     // console.log(caliPoints)
 
+                    function showTooltip(event, text) {
+                        const tooltip = document.querySelector('.tooltip');
+                        tooltip.innerHTML = text;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = event.pageX + 'px';
+                        tooltip.style.top = event.pageY + 'px';
+                    }
+
                     var caliCircles = calimap.selectAll("circle").data(caliPoints)
                         .join("circle")
                         .attr("cx", d => caliProjection([d['longitude'], d['latitude']])[0])
@@ -181,7 +200,15 @@
                         .attr("cy", d => caliProjection([d['longitude'], d['latitude']])[1])
                         .attr("r", 0.3)
                         .attr("opacity", 0.3)
-                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green");
+                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green")
+                        .on('mouseover', function (event, d) {
+                            const tooltipText = `${d.name} (${d.city}, ${d.state_code})`;
+                            showTooltip(event, tooltipText);
+                        })
+                        .on('mouseout', function () {
+                            const tooltip = document.querySelector('.tooltip');
+                            tooltip.style.display = 'none';
+                        });
 
                     let caliGray = calimap.append("rect")
                         .attr("width", miniMapWidth)
@@ -234,7 +261,15 @@
                         .attr("cy", d => nyProjection([d['longitude'], d['latitude']])[1])
                         .attr("r", 0.3)
                         .attr("opacity", 0.3)
-                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green");
+                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green")
+                        .on('mouseover', function (event, d) {
+                            const tooltipText = `${d.name} (${d.city}, ${d.state_code})`;
+                            showTooltip(event, tooltipText);
+                        })
+                        .on('mouseout', function () {
+                            const tooltip = document.querySelector('.tooltip');
+                            tooltip.style.display = 'none';
+                        });
 
                     let nyGray = nymap.append("rect")
                         .attr("width", miniMapWidth)
