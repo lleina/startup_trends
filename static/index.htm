@@ -5,6 +5,15 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/topojson.v3.min.js"></script>
     <style>
+        body {
+            background-color: rgb(189, 214, 255);
+            /* Set the background color */
+        }
+
+        h1 {
+            font-family: 'Courier New', monospace;
+        }
+
         svg#calisvg {
             fill: None;
         }
@@ -24,11 +33,19 @@
 </head>
 
 <body>
-    <svg id="calisvg" height="350" width="350"></svg>
-    <svg id="caliMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
-    <svg id="nysvg" height="350" width="350"></svg>
-    <svg id="nyMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
+    <h1>California the Startup Heaven</h1>
+    <div>
+        <svg id="calisvg" height="350" width="350"></svg>
+        <svg id="caliMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
+    </div>
+    <div>
+        <svg id="nysvg" height="350" width="350"></svg>
+        <svg id="nyMinisvg" height="350" width="350" style="border:2px solid rgb(0, 0, 0)"></svg>
+    </div>
+
+
     <script>
+
         const calisvg = d3.select("svg#calisvg");
         const nysvg = d3.select("svg#nysvg");
 
@@ -63,7 +80,7 @@
                 .join("path")
                 .attr("class", "neighbors")
                 .attr("d", calipath)
-                .style("fill", "lightgray");
+                .style("fill", "rgb(229, 229, 229)");
 
             let caliPath = calimap.append("path").datum(caliMesh)
                 .attr("class", "outline")
@@ -82,7 +99,7 @@
                 .join("path")
                 .attr("class", "neighbors")
                 .attr("d", calipath)
-                .style("fill", "lightgray");
+                .style("fill", "rgb(229, 229, 229)");
 
             let caliMiniPath = caliMiniMap.append("path").datum(caliMesh)
                 .attr("class", "outline")
@@ -106,7 +123,7 @@
                 .join("path")
                 .attr("class", "neighbors")
                 .attr("d", nypath)
-                .style("fill", "lightgray");
+                .style("fill", "rgb(229, 229, 229)");
 
             let nyPath = nymap.append("path").datum(nyMesh)
                 .attr("class", "outline")
@@ -123,7 +140,7 @@
                 .join("path")
                 .attr("class", "neighbors")
                 .attr("d", nypath)
-                .style("fill", "lightgray");
+                .style("fill", "rgb(229, 229, 229)");
 
             let nyMiniPath = nyMiniMap.append("path").datum(nyMesh)
                 .attr("class", "outline")
@@ -156,7 +173,7 @@
                         .attr("cy", d => caliProjection([d['longitude'], d['latitude']])[1])
                         .attr("r", 0.5)
                         .attr("opacity", 0.4)
-                        .attr("fill", "blue")
+                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green");
 
                     var caliMiniCircles = caliMiniMap.selectAll("circle").data(caliPoints)
                         .join("circle")
@@ -164,7 +181,7 @@
                         .attr("cy", d => caliProjection([d['longitude'], d['latitude']])[1])
                         .attr("r", 0.3)
                         .attr("opacity", 0.3)
-                        .attr("fill", "blue")
+                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green");
 
                     let caliGray = calimap.append("rect")
                         .attr("width", miniMapWidth)
@@ -209,7 +226,7 @@
                         .attr("cy", d => nyProjection([d['longitude'], d['latitude']])[1])
                         .attr("r", 1)
                         .attr("opacity", 1)
-                        .attr("fill", "blue")
+                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green");
 
                     var nyMiniCircles = nyMiniMap.selectAll("circle").data(nyPoints)
                         .join("circle")
@@ -217,7 +234,7 @@
                         .attr("cy", d => nyProjection([d['longitude'], d['latitude']])[1])
                         .attr("r", 0.3)
                         .attr("opacity", 0.3)
-                        .attr("fill", "blue")
+                        .attr("fill", d => d['is_top500'] === 0 ? "red" : "green");
 
                     let nyGray = nymap.append("rect")
                         .attr("width", miniMapWidth)
@@ -256,10 +273,6 @@
                     }
 
                 })
-
-
-
-
 
         }
         requestData();
