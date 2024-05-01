@@ -160,6 +160,10 @@
         const caliminisvg = d3.select("svg#caliMinisvg")
         const nyminisvg = d3.select("svg#nyMinisvg")
 
+        const caliPlotsvg = d3.select("svg#caliPlotsvg")
+        const nyPlotsvg = d3.select("svg#nyPlotsvg")
+
+
         // constants shared across all maps
         width = calisvg.attr("width");
         height = calisvg.attr("height");
@@ -167,10 +171,18 @@
         const mapWidth = width - margin.left - margin.right;
         const mapHeight = height - margin.top - margin.bottom;
 
+        // constants for minimaps
         miniWidth = caliminisvg.attr("width");
         miniHeight = caliminisvg.attr("height");
         const miniMapWidth = miniWidth - margin.left - margin.right;
         const miniMapHeight = miniHeight - margin.left - margin.right;
+
+        // constants for plots
+        plotwidth = caliPlotsvg.attr("width");
+        plotheight = caliPlotsvg.attr("height");
+        const margins = { top: 30, right: 55, bottom: 10, left: 55 };
+        const plotWidth = plotwidth - margins.left - margins.right;
+        const plotHeight = plotheight - margins.left - margins.right;
 
         const requestData = async function () {
             // start california map
@@ -410,6 +422,76 @@
                             .attr("width", scaledWidth)
                             .attr("height", scaledHeight);
                     }
+
+                    // Created Cali Pcp
+                    dimensions = ["age_first_funding_year", "age_last_funding_year", "funding_total_usd", "is_top500"]
+
+                    var y = {}
+                    for (i in dimensions) {
+                        name = dimensions[i]
+                        y[name] = d3.scaleLinear()
+                            .domain(d3.extent(data, d => d[name]))
+                            .range([plotHeight, 0])
+                    }
+
+                    x = d3.scalePoint()
+                        .range([0, plotWidth])
+                        .domain(dimensions);
+
+                    var highlight = function (d) {
+                        // First, set all lines to grey with reduced opacity
+                        d3.selectAll(".line")
+                            .transition().duration(100)
+                            .style("stroke", "lightgrey")
+                            .style("opacity", "0.2");
+
+                        // Then, highlight the hovered line with its original color and full opacity
+                        d3.select(this)
+                            .transition().duration(200)
+                            .style("stroke", this.getAttribute("class") === 'line 0' ? "red" : "green")
+                            .style("opacity", "1");
+                    }
+
+                    // Unhighlight
+                    var doNotHighlight = function (d) {
+                        d3.selectAll(".line")
+                            .transition().duration(100)
+                            .style("stroke", d => d['is_top500'] === 0 ? "red" : "green")
+                            .style("opacity", "0.5")
+                    }
+
+
+                    function path(d) {
+                        return d3.line()(dimensions.map(function (p) { return [x(p), y[p](d[p])]; }));
+                    }
+
+                    const caliPlot = caliPlotsvg.append("g")
+                        .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+
+
+                    caliPlot.selectAll("caliPath")
+                        .data(data)
+                        .enter()
+                        .append("path")
+                        .attr("class", function (d) { return "line " + d.is_top500 })
+                        .attr("d", path)
+                        .style("fill", "none")
+                        .style("opacity", 0.5)
+                        .style("stroke", d => d['is_top500'] === 0 ? "red" : "green")
+                        .on("mouseover", highlight)
+                        .on("mouseout", doNotHighlight)
+
+                    caliPlot.selectAll("caliAxis")
+                        .data(dimensions).enter()
+                        .append("g")
+                        .attr("class", "axis")
+                        .attr("transform", function (d) { return "translate(" + x(d) + ")"; })
+                        .each(function (d) { d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d])); })
+                        .append("text")
+                        .style("text-anchor", "middle")
+                        .attr("y", -9)
+                        .text(function (d) { return d; })
+                        .style("fill", "black")
 
                 })
 
