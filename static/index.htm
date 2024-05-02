@@ -323,7 +323,7 @@
         // constants for plots
         plotwidth = caliPlotsvg.attr("width");
         plotheight = caliPlotsvg.attr("height");
-        const margins = { top: 30, right: 55, bottom: 10, left: 55 };
+        const margins = { top: 30, right: 55, bottom: 50, left: 55 };
         const plotWidth = plotwidth - margins.left - margins.right;
         const plotHeight = plotheight - margins.left - margins.right;
 
@@ -572,9 +572,23 @@
                     var y = {}
                     for (i in dimensions) {
                         name = dimensions[i]
-                        y[name] = d3.scaleLinear()
-                            .domain(d3.extent(data, d => d[name]))
-                            .range([plotHeight, 0])
+                        if (name === "age_first_funding_year" || name === "age_last_funding_year") {
+                            lastExtent = d3.extent(data, d => d["age_last_funding_year"])
+                            // console.log("last")
+                            // console.log(lastExtent)
+                            firstExtent = d3.extent(data, d => d["age_first_funding_year"])
+                            // console.log("first")
+                            // console.log(firstExtent)
+                            var newExtent = [firstExtent[0], lastExtent[1]]
+                            y[name] = d3.scaleLinear()
+                                .domain(newExtent)
+                                .range([plotHeight + margins.bottom, margins.top])
+                        }
+                        else {
+                            y[name] = d3.scaleLinear()
+                                .domain(d3.extent(data, d => d[name]))
+                                .range([plotHeight + margins.bottom, margins.top])
+                        }
                     }
 
                     x = d3.scalePoint()
@@ -629,12 +643,54 @@
                         .append("g")
                         .attr("class", "axis")
                         .attr("transform", function (d) { return "translate(" + x(d) + ")"; })
-                        .each(function (d) { d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d])); })
+                        .each(function (d) {
+                            if (d === "is_top500") {
+                                // Define a custom scale for is_top500
+                                let axisScale = d3.scaleLinear()
+                                    .domain([0, 1]) // Domain values
+                                    .range([plotHeight + margins.bottom, margins.top]); // Range values
+
+                                // Customize tick values and labels
+                                d3.select(this).call(d3.axisLeft().scale(axisScale)
+                                    .tickValues([0, 1])
+                                    .tickFormat(function (d) {
+                                        return d === 0 ? "No" : "Yes";
+                                    }));
+                            } else {
+                                // For other dimensions, use the existing y scale
+                                d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d]));
+                            }
+                        })
                         .append("text")
                         .style("text-anchor", "middle")
-                        .attr("y", -9)
-                        .text(function (d) { return d; })
+                        .attr("y", 20)
+                        .style("font-size", "12px")
+                        .text(function (d) {
+                            if (d === "age_first_funding_year") {
+                                return "Age at first funding"
+                            }
+                            else if (d === "age_last_funding_year") {
+                                return "Age at last funding"
+                            }
+                            else if (d === "funding_total_usd") {
+                                return "Total funding ($)"
+                            }
+                            else if (d === "is_top500") {
+                                return "A top 500 company"
+                            }
+                        })
+                        .style("fill", "black");
+
+
+
+
+                    caliPlot.append("text")
+                        .attr("x", plotWidth / 2)
+                        .attr("y", -10)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "18px")
                         .style("fill", "black")
+                        .text("California's Startup Funding Profile");
 
                 })
 
