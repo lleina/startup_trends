@@ -51,7 +51,7 @@
         }
 
         .content {
-            max-width: 700px;
+            max-width: 450px;
             margin: 0 auto;
             flex-direction: row;
         }
@@ -127,7 +127,7 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            gap: 20px;
+            gap: 100px;
         }
 
         .spacer {
@@ -285,10 +285,10 @@
             <div class="pcp">
                 <div class="plot-container">
                     <div class="plot">
-                        <svg id="caliPlotsvg" height="500" width="700" style="border:2px solid rgb(0, 0, 0)"></svg>
+                        <svg id="caliPlotsvg" height="500" width="700"></svg>
                     </div>
                     <div class="plot">
-                        <svg id="nyPlotsvg" height="500" width="700" style="border:2px solid rgb(0, 0, 0)"></svg>
+                        <svg id="nyPlotsvg" height="500" width="700"></svg>
                     </div>
                 </div>
             </div>
@@ -323,7 +323,7 @@
         // constants for plots
         plotwidth = caliPlotsvg.attr("width");
         plotheight = caliPlotsvg.attr("height");
-        const margins = { top: 30, right: 55, bottom: 50, left: 55 };
+        const margins = { top: 30, right: 60, bottom: 50, left: 60 };
         const plotWidth = plotwidth - margins.left - margins.right;
         const plotHeight = plotheight - margins.left - margins.right;
 
@@ -569,6 +569,7 @@
                     // Created Cali Pcp
                     dimensions = ["age_first_funding_year", "age_last_funding_year", "funding_total_usd", "is_top500"]
 
+
                     var y = {}
                     for (i in dimensions) {
                         name = dimensions[i]
@@ -632,7 +633,7 @@
 
 
                     caliPlot.selectAll("caliPath")
-                        .data(data)
+                        .data(caliPoints)
                         .enter()
                         .append("path")
                         .attr("class", function (d) { return "line " + d.is_top500 })
@@ -691,6 +692,106 @@
                         .style("font-size", "18px")
                         .style("fill", "black")
                         .text("California's Startup Funding Profile");
+
+
+                    // new york plot!
+
+                    var yNY = {}
+                    for (i in dimensions) {
+                        name = dimensions[i]
+                        if (name === "age_first_funding_year" || name === "age_last_funding_year") {
+                            lastExtent = d3.extent(data, d => d["age_last_funding_year"])
+                            // console.log("last")
+                            // console.log(lastExtent)
+                            firstExtent = d3.extent(data, d => d["age_first_funding_year"])
+                            // console.log("first")
+                            // console.log(firstExtent)
+                            var newExtent = [firstExtent[0], lastExtent[1]]
+                            yNY[name] = d3.scaleLinear()
+                                .domain(newExtent)
+                                .range([plotHeight + margins.bottom, margins.top])
+                        }
+                        else if (name === "funding_total_usd") {
+                            yNY[name] = d3.scaleLog()
+                                .domain(d3.extent(data, d => d[name]))
+                                .range([plotHeight + margins.bottom, margins.top])
+                        }
+                        else {
+                            yNY[name] = d3.scaleLinear()
+                                .domain(d3.extent(data, d => d[name]))
+                                .range([plotHeight + margins.bottom, margins.top])
+                        }
+                    }
+
+
+                    function pathNY(d) {
+                        return d3.line()(dimensions.map(function (p) { return [x(p), yNY[p](d[p])]; }));
+                    }
+
+                    const nyPlot = nyPlotsvg.append("g")
+                        .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+
+
+                    nyPlot.selectAll("nyPath")
+                        .data(nyPoints)
+                        .enter()
+                        .append("path")
+                        .attr("class", function (d) { return "line " + d.is_top500 })
+                        .attr("d", pathNY)
+                        .style("fill", "none")
+                        .style("opacity", 0.5)
+                        .style("stroke", d => d['is_top500'] === 0 ? "red" : "green")
+                        .on("mouseover", highlight)
+                        .on("mouseout", doNotHighlight)
+
+                    nyPlot.selectAll("nyAxis")
+                        .data(dimensions).enter()
+                        .append("g")
+                        .attr("class", "axis")
+                        .attr("transform", function (d) { return "translate(" + x(d) + ")"; })
+                        .each(function (d) {
+                            if (d === "is_top500") {
+                                // custom scale for is_top500
+                                let axisScale = d3.scaleLinear()
+                                    .domain([0, 1])
+                                    .range([plotHeight + margins.bottom, margins.top]);
+                                d3.select(this).call(d3.axisLeft().scale(axisScale)
+                                    .tickValues([0, 1])
+                                    .tickFormat(function (d) {
+                                        return d === 0 ? "No" : "Yes";
+                                    }));
+                            } else {
+                                d3.select(this).call(d3.axisLeft().ticks(5).scale(yNY[d]));
+                            }
+                        })
+                        .append("text")
+                        .style("text-anchor", "middle")
+                        .attr("y", 20)
+                        .style("font-size", "12px")
+                        .text(function (d) {
+                            if (d === "age_first_funding_year") {
+                                return "Age at first funding"
+                            }
+                            else if (d === "age_last_funding_year") {
+                                return "Age at last funding"
+                            }
+                            else if (d === "funding_total_usd") {
+                                return "Total funding ($)"
+                            }
+                            else if (d === "is_top500") {
+                                return "A top 500 company"
+                            }
+                        })
+                        .style("fill", "black");
+
+
+                    nyPlot.append("text")
+                        .attr("x", plotWidth / 2)
+                        .attr("y", -10)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "18px")
+                        .style("fill", "black")
+                        .text("New York's Startup Funding Profile");
 
                 })
 
