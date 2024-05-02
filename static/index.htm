@@ -584,6 +584,11 @@
                                 .domain(newExtent)
                                 .range([plotHeight + margins.bottom, margins.top])
                         }
+                        else if (name === "funding_total_usd") {
+                            y[name] = d3.scaleLog()
+                                .domain(d3.extent(data, d => d[name]))
+                                .range([plotHeight + margins.bottom, margins.top])
+                        }
                         else {
                             y[name] = d3.scaleLinear()
                                 .domain(d3.extent(data, d => d[name]))
@@ -645,19 +650,16 @@
                         .attr("transform", function (d) { return "translate(" + x(d) + ")"; })
                         .each(function (d) {
                             if (d === "is_top500") {
-                                // Define a custom scale for is_top500
+                                // custom scale for is_top500
                                 let axisScale = d3.scaleLinear()
-                                    .domain([0, 1]) // Domain values
-                                    .range([plotHeight + margins.bottom, margins.top]); // Range values
-
-                                // Customize tick values and labels
+                                    .domain([0, 1])
+                                    .range([plotHeight + margins.bottom, margins.top]);
                                 d3.select(this).call(d3.axisLeft().scale(axisScale)
                                     .tickValues([0, 1])
                                     .tickFormat(function (d) {
                                         return d === 0 ? "No" : "Yes";
                                     }));
                             } else {
-                                // For other dimensions, use the existing y scale
                                 d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d]));
                             }
                         })
@@ -680,8 +682,6 @@
                             }
                         })
                         .style("fill", "black");
-
-
 
 
                     caliPlot.append("text")
