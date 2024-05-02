@@ -659,15 +659,20 @@
                                     .tickValues([0, 1])
                                     .tickFormat(function (d) {
                                         return d === 0 ? "No" : "Yes";
-                                    }));
+                                    }))
+                                    .selectAll("text")
+                                    .style("font-weight", "bold");;
                             } else {
-                                d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d]));
+                                d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d]))
+                                    .selectAll("text")
+                                    .style("font-weight", "bold");
                             }
                         })
                         .append("text")
                         .style("text-anchor", "middle")
                         .attr("y", 20)
                         .style("font-size", "12px")
+                        .style("font-weight", "bold")
                         .text(function (d) {
                             if (d === "age_first_funding_year") {
                                 return "Age at first funding"
@@ -689,8 +694,9 @@
                         .attr("x", plotWidth / 2)
                         .attr("y", -10)
                         .attr("text-anchor", "middle")
-                        .style("font-size", "18px")
+                        .style("font-size", "25px")
                         .style("fill", "black")
+                        .style("font-weight", "580")
                         .text("California's Startup Funding Profile");
 
 
@@ -759,15 +765,20 @@
                                     .tickValues([0, 1])
                                     .tickFormat(function (d) {
                                         return d === 0 ? "No" : "Yes";
-                                    }));
+                                    }))
+                                    .selectAll("text")
+                                    .style("font-weight", "bold");;
                             } else {
-                                d3.select(this).call(d3.axisLeft().ticks(5).scale(yNY[d]));
+                                d3.select(this).call(d3.axisLeft().ticks(5).scale(yNY[d]))
+                                    .selectAll("text")
+                                    .style("font-weight", "bold");;
                             }
                         })
                         .append("text")
                         .style("text-anchor", "middle")
                         .attr("y", 20)
                         .style("font-size", "12px")
+                        .style("font-weight", "bold")
                         .text(function (d) {
                             if (d === "age_first_funding_year") {
                                 return "Age at first funding"
@@ -789,8 +800,9 @@
                         .attr("x", plotWidth / 2)
                         .attr("y", -10)
                         .attr("text-anchor", "middle")
-                        .style("font-size", "18px")
+                        .style("font-size", "25px")
                         .style("fill", "black")
+                        .style("font-weight", "580")
                         .text("New York's Startup Funding Profile");
 
                 })
