@@ -40,7 +40,7 @@
         }
 
         .map {
-            margin-bottom: 50px;
+            margin-bottom: 10px;
             flex-direction: 1;
         }
 
@@ -183,6 +183,10 @@
                     </div>
 
                     <div class="map">
+                        <svg id="maplegend" height="40" width="700"></svg>
+                    </div>
+
+                    <div class=" map">
                         <svg id="nysvg" height="350" width="350">
                             <text x="28%" y="70%" text-anchor="middle" dominant-baseline="middle" font-size="20"
                                 fill="black">Startups in New York</text>
@@ -274,6 +278,8 @@
         const caliPlotsvg = d3.select("svg#caliPlotsvg")
         const nyPlotsvg = d3.select("svg#nyPlotsvg")
 
+        const legendsvg = d3.select("svg#maplegend")
+
 
         // constants shared across all maps
         width = calisvg.attr("width");
@@ -294,6 +300,9 @@
         const margins = { top: 30, right: 60, bottom: 50, left: 60 };
         const plotWidth = plotwidth - margins.left - margins.right;
         const plotHeight = plotheight - margins.left - margins.right;
+
+        legendWidth = legendsvg.attr("width") - margin.left - margin.right;
+        legendHeight = legendsvg.attr("height") - margin.top - margin.bottom;
 
         const requestData = async function () {
             // start california map
@@ -514,7 +523,7 @@
                         .on("zoom", caliZoomFunc);
                     caliminisvg.call(caliZoom);
                     caliminisvg.call(caliZoom.transform, d3.zoomIdentity
-                        .translate(-(15 * 75), -(15 * 150))
+                        .translate(-(15 * 75), -(15 * 148))
                         .scale(15));
 
                     function caliZoomFunc({ transform }) {
@@ -648,7 +657,55 @@
                         updateNYSchoolsPosition(transform);
                     }
 
-                    // Created Cali Pcp
+
+                    // Legend creation
+
+                    legendsvg.append("text")
+                        .attr("x", 35)
+                        .attr("y", legendHeight + 5)
+                        .style("font-size", "18px")
+                        .style("font-weight", 400)
+                        .attr("text-anchor", "left")
+                        .text("Top 500 startup");
+
+                    legendsvg.append("text")
+                        .attr("x", 250)
+                        .attr("y", legendHeight + 5)
+                        .style("font-size", "18px")
+                        .style("font-weight", 400)
+                        .attr("text-anchor", "left")
+                        .text("Not a top 500 startup");
+
+                    legendsvg.append("text")
+                        .attr("x", 500)
+                        .attr("y", legendHeight + 5)
+                        .style("font-size", "18px")
+                        .style("font-weight", 400)
+                        .attr("text-anchor", "left")
+                        .text("Top 50 National University");
+
+                    legendsvg.append('circle')
+                        .attr('cx', 25)
+                        .attr('cy', legendHeight)
+                        .attr('r', 5)
+                        .attr('opacity', 0.8)
+                        .style('fill', "green")
+
+                    legendsvg.append('circle')
+                        .attr('cx', 240)
+                        .attr('cy', legendHeight)
+                        .attr('r', 5)
+                        .attr('opacity', 0.8)
+                        .style('fill', "red")
+
+                    legendsvg.append('g')
+                        .append("path")
+                        .attr("d", symbolMiniGenerator)
+                        .attr("transform", "translate(" + 487 + "," + (legendHeight - 1) + ")")
+                        .attr('opacity', 0.8)
+                        .style('fill', "black")
+
+                    // Create Cali Pcp
                     dimensions = ["age_first_funding_year", "age_last_funding_year", "funding_total_usd", "is_top500"]
 
 
