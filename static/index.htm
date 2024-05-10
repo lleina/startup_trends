@@ -455,8 +455,8 @@
                         .attr("stroke", "black")
                         .attr("stroke-width", 2);
 
-                    // top 10 schools in cali from this website: https://www.usnews.com/best-colleges/ca 
-                    cali_schools = { "Stanford University": [-122.1700278134956, 37.42780909980265], "CalTech": [-118.12466821078392, 34.13776406580326], "UC Berekely": [-122.25950351906475, 37.870400818428514], "UCLA": [-118.443838775048, 34.07011369309628], "UC Davis": [-121.76170177485399, 38.53835805193761], "UC San Diego": [-117.23437123276759, 32.881303124403736], "University of Southern California": [-118.2850955679645, 34.02248518790615], "UC Irvine": [-117.84169616157337, 33.64264486340942], "UC Santa Barbara": [-119.84891481736172, 34.41412219141523], "UC Santa Clara": [-121.93679113247447, 37.349070464098] }
+                    // top 50 schools in the US that are in CA: https://www.usnews.com/best-colleges/ca 
+                    cali_schools = { "Stanford University": [-122.1700278134956, 37.42780909980265], "CalTech": [-118.12466821078392, 34.13776406580326], "UC Berekely": [-122.25950351906475, 37.870400818428514], "UCLA": [-118.443838775048, 34.07011369309628], "UC Davis": [-121.76170177485399, 38.53835805193761], "UC San Diego": [-117.23437123276759, 32.881303124403736], "University of Southern California": [-118.2850955679645, 34.02248518790615], "UC Irvine": [-117.84169616157337, 33.64264486340942], "UC Santa Barbara": [-119.84891481736172, 34.41412219141523] }
 
                     var caliSchoolsGroup = caliMiniMap.append("g").attr("id", "caliSchoolsGroup");
                     var caliSchools = calimap.append("g").attr("id", "caliSchoolsGroup");
@@ -564,6 +564,53 @@
                             tooltip.style.display = 'none';
                         });
 
+                    // top 50 schools in US that are in NY: https://www.usnews.com/best-colleges/ny 
+                    ny_schools = { "Columbia University": [-73.96217573654394, 40.8076654033101], "Cornell University": [-76.4735027033819, 42.45358374327606], "New York University": [-73.99647039419958, 40.729646306918426], "University of Rochester": [-77.62522009833418, 43.13068617896343] }
+
+                    var nySchoolsGroup = nyMiniMap.append("g").attr("id", "nySchoolsGroup");
+                    var nySchools = nymap.append("g").attr("id", "nySchoolsGroup");
+
+                    for (const key in ny_schools) {
+                        let spot = nyProjection(ny_schools[key]);
+
+                        nySchoolsGroup.append("g")
+                            .attr("class", "spot-" + key)
+                            .attr("transform", "translate(" + spot[0] + "," + spot[1] + ")")
+                            .append("path")
+                            .attr("d", symbolMiniGenerator)
+                            .attr("fill", "black")
+                            .attr("opacity", 0.8)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", "0.1px")
+                            .on('mouseover', function (event) {
+                                const schoolName = key;
+                                const tooltipText = `${schoolName}`;
+                                showSchoolTooltip(event, tooltipText);
+                            })
+                            .on('mouseout', function () {
+                                const tooltip = document.querySelector('.tooltip');
+                                tooltip.style.display = 'none';
+                            });
+
+                        nySchools.append("g")
+                            .attr("class", "spot-" + key)
+                            .attr("transform", "translate(" + spot[0] + "," + spot[1] + ")")
+                            .append("path")
+                            .attr("d", symbolGenerator)
+                            .attr("fill", "black")
+                            .attr("opacity", 0.5)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", "0.1px");
+
+                    }
+
+                    function updateNYSchoolsPosition(transform) {
+                        var scaleFactor = 1 / (1 + transform.k);
+                        nySchoolsGroup.selectAll("path")
+                            .attr("transform", "scale(" + scaleFactor + ")");
+                    }
+
+
                     let nyGray = nymap.append("rect")
                         .attr("width", miniMapWidth)
                         .attr("height", miniMapHeight)
@@ -598,6 +645,7 @@
                             .attr("y", offsetY)
                             .attr("width", scaledWidth)
                             .attr("height", scaledHeight);
+                        updateNYSchoolsPosition(transform);
                     }
 
                     // Created Cali Pcp
