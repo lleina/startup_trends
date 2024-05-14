@@ -270,7 +270,7 @@
                 </div>
             </div>
             <div class="bar">
-                <svg id="barChart" height="200" width="1000" style="border:2px solid rgb(0, 0, 0)"></svg>
+                <svg id="barChart" height="200" width="1000"></svg>
             </div>
         </div>
     </div>
@@ -977,27 +977,29 @@
                         }
                     }
 
-                    let successStats = [cali_success, cali_fail, ny_success, ny_fail]
+                    let successStats = [
+                        { state_code: "CA", success: cali_success, fail: cali_fail },
+                        { state_code: "NY", success: ny_success, fail: ny_fail }];
 
-                    console.log(cali_success)
-                    console.log(cali_fail)
-                    console.log(ny_success)
-                    console.log(ny_fail)
+                    // console.log(cali_success)
+                    // console.log(cali_fail)
+                    // console.log(ny_success)
+                    // console.log(ny_fail)
 
                     let barChartArea = barChart.append('g')
                         .attr('transform', `translate(${barMargins.left}, ${barMargins.top})`);
 
-                    let states = data.map(d => d.state_code);
+                    let states = successStats.map(d => d.state_code);
 
                     let yScale = d3.scaleBand()
                         .domain(states)
                         .range([0, barHeight])
 
-                    let leftAxis = d3.axisLeft(yScale);
-
                     let xScale = d3.scaleLinear()
-                        .domain(d3.extent(successStats))
+                        .domain([0, d3.max(successStats, d => d.success + d.fail)])
                         .range([barMargins.left, barWidth])
+
+                    let leftAxis = d3.axisLeft(yScale);
 
                     barChart.append('g')
                         .attr('class', 'y axis')
@@ -1022,7 +1024,74 @@
                         .attr('transform', `translate(${barMargins.left},${barHeight + barMargins.top - 20})`)
                         .call(bottomGridlines);
 
+                    barChart.selectAll(".success-bar")
+                        .data(successStats)
+                        .enter().append("rect")
+                        .attr("class", "success-bar")
+                        .attr("x", barMargins.left + 20.2)
+                        .attr("y", d => yScale(d.state_code) + barMargins.top - 5)
+                        .attr("width", d => xScale(d.success))
+                        .attr("height", 30)
+                        .attr("fill", "green");
 
+                    barChart.selectAll(".failure-bar")
+                        .data(successStats)
+                        .enter().append("rect")
+                        .attr("class", "failure-bar")
+                        .attr("x", barMargins.left + 20.2)
+                        .attr("y", d => yScale(d.state_code) + barMargins.top + 5)
+                        .attr("width", d => xScale(d.fail))
+                        .attr("height", 30)
+                        .attr("fill", "red");
+
+                    barChart.append("text")
+                        .attr("class", "x-axis-title")
+                        .attr("x", barWidth / 2 + 50)
+                        .attr("y", barHeight + 67)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "15px")
+                        .text("Total Number of Startups that are in or not in Top 500 Dependent on State");
+
+                    let percent_ca_fail = Math.round(successStats[0].fail / (successStats[0].fail + successStats[0].success) * 100)
+                    barChart.append("text")
+                        .attr("class", "percentages")
+                        .attr("x", xScale(successStats[0].fail) + 20)
+                        .attr("y", yScale("CA") + barMargins.top + 25)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "15px")
+                        .style("fill", "white")
+                        .text(percent_ca_fail + "%");
+
+                    let percent_ca_success = Math.round(successStats[0].success / (successStats[0].fail + successStats[0].success) * 100)
+                    barChart.append("text")
+                        .attr("class", "percentages")
+                        .attr("x", xScale(successStats[0].success) + 20)
+                        .attr("y", yScale("CA") + barMargins.top + 15)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "15px")
+                        .style("fill", "white")
+                        .text(percent_ca_success + "%");
+
+
+                    let percent_ny_fail = Math.round(successStats[1].fail / (successStats[1].fail + successStats[1].success) * 100)
+                    barChart.append("text")
+                        .attr("class", "percentages")
+                        .attr("x", xScale(successStats[1].fail) + 20)
+                        .attr("y", yScale("NY") + barMargins.top + 25)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "15px")
+                        .style("fill", "white")
+                        .text(percent_ny_fail + "%");
+
+                    let percent_ny_success = Math.round(successStats[1].success / (successStats[1].fail + successStats[1].success) * 100)
+                    barChart.append("text")
+                        .attr("class", "percentages")
+                        .attr("x", xScale(successStats[1].success) + 20)
+                        .attr("y", yScale("NY") + barMargins.top + 15)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "15px")
+                        .style("fill", "white")
+                        .text(percent_ny_success + "%");
 
                 })
 
